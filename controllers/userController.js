@@ -41,9 +41,9 @@ exports.getUserPermissions = async (req, res) => {
         const permissions = new Set();
         user.roles.forEach((role) => {
             if (role.permissions.includes('*')) {
-                permissions.clear(); // If any role has all permissions, clear the set - Si un rôle a toutes les permissions, vider l'ensemble
-                permissions.add('*'); // If any role has all permissions, return '*' - Si un rôle a toutes les permissions, retourner '*'
-                return; // No need to check further - Pas besoin de vérifier plus loin
+                permissions.clear(); // If any role has all permissions, clear the set //* Si un rôle a toutes les permissions, vider l'ensemble
+                permissions.add('*'); // If any role has all permissions, return '*' //* Si un rôle a toutes les permissions, retourner '*'
+                return; // No need to check further //* Pas besoin de vérifier plus loin
             }
             role.permissions.forEach((permission) => {
                 permissions.add(permission);
@@ -85,6 +85,9 @@ exports.createUser = async (req, res) => {
             roles: roleDocuments.map((role) => role._id),
         });
 
+        // Include audit information //* Inclure les informations d'audit
+        newUser._auditUser = req.user._id; // Assuming req.user contains the authenticated user's info //* Supposons que req.user contienne les informations de l'utilisateur authentifié
+
         await newUser.save();
         res.status(201).json({
             message: 'User created successfully',
@@ -112,6 +115,9 @@ exports.updateUser = async (req, res) => {
         user.firstName = firstName || user.firstName;
         user.lastName = lastName || user.lastName;
         user.email = email || user.email;
+        
+        // Include audit information //* Inclure les informations d'audit
+        user._auditUser = req.user._id;
 
         await user.save();
         res.status(200).json({
@@ -217,8 +223,14 @@ exports.deleteUser = async (req, res) => {
     const { userId } = req.params;
 
     try {
+        // Create a query to delete the user by ID //* Créer une requête pour supprimer l'utilisateur par ID
+        const query = User.findByIdAndDelete(userId);
+
+        // Assuming req.user contains the authenticated user's info //* Supposons que req.user contienne les informations de l'utilisateur authentifié
+        query._auditUser = req.user._id;
+        
         // Find the user by ID and delete
-        const user = await User.findByIdAndDelete(userId);
+        const user = await query.exec();
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }

@@ -55,6 +55,9 @@ exports.createTeam = async (req, res) => {
             createdBy: req.user._id,
         });
 
+        // Include audit information
+        newTeam._auditUser = req.user._id;
+
         await newTeam.save();
         res.status(201).json(newTeam);
     } catch (error) {
@@ -88,6 +91,9 @@ exports.updateTeam = async (req, res) => {
             return res.status(404).json({ message: 'Team not found' });
         }
 
+        // Include audit information
+        team._auditUser = req.user._id;
+
         res.status(200).json(team);
     } catch (error) {
         console.error(error);
@@ -100,7 +106,12 @@ exports.deleteTeam = async (req, res) => {
     const { teamId } = req.params;
 
     try {
-        const team = await Team.findByIdAndDelete(teamId);
+        const query = Team.findByIdAndDelete(teamId);
+        
+        // Include audit information
+        query._auditUser = req.user._id;
+
+        const team = await query.exec();
         if (!team) {
             return res.status(404).json({ message: 'Team not found' });
         }

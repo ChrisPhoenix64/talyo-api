@@ -113,6 +113,9 @@ exports.createTask = async (req, res) => {
             createdBy: req.user._id, // Assuming req.user is set by authentication middleware //* En supposant que req.user est défini par le middleware d'authentification
         });
 
+        // Include audit information //* Inclure les informations d'audit
+        newTask._auditUser = req.user._id;
+
         await newTask.save();
         res.status(201).json(newTask);
     } catch (error) {
@@ -157,6 +160,10 @@ exports.updateTask = async (req, res) => {
         if (!task) {
             return res.status(404).json({ message: 'Task not found' });
         }
+
+        // Include audit information //* Inclure les informations d'audit
+        task._auditUser = req.user._id;
+
         res.status(200).json({ message: 'Task updated successfully', task });
     } catch (error) {
         console.error(error);
@@ -169,7 +176,13 @@ exports.deleteTask = async (req, res) => {
     const { taskId } = req.params;
 
     try {
-        const task = await Task.findByIdAndDelete(taskId);
+        const query = Task.findByIdAndDelete(taskId);
+        
+        // Include audit information //* Inclure les informations d'audit
+        query._auditUser = req.user._id;
+
+        const task = await query.exec();
+
         if (!task) {
             return res.status(404).json({ message: 'Task not found' });
         }

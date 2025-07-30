@@ -47,6 +47,10 @@ exports.addTeamMember = async (req, res) => {
         }
 
         team.members.push({ user: userId, role: 'member' }); // Assuming role is 'member' by default //* Assumé que le rôle est 'membre' par défaut
+
+        // Include audit information //* Inclure les informations d'audit
+        team._auditUser = req.user._id; // Assuming req.user contains the authenticated user's info //* Supposons que req.user contienne les informations de l'utilisateur authentifié
+
         await team.save();
 
         res.status(201).json({
@@ -83,6 +87,10 @@ exports.updateTeamMemberRole = async (req, res) => {
         }
 
         member.role = role; // Assuming member is an object with a role property //* Assumé que le membre est un objet avec une propriété de rôle
+
+        // Include audit information //* Inclure les informations d'audit
+        team._auditUser = req.user._id; // Assuming req.user contains the authenticated user's info //* Supposons que req.user contienne les informations de l'utilisateur authentifié
+
         await team.save();
 
         res.json({
@@ -116,6 +124,9 @@ exports.removeTeamMember = async (req, res) => {
                 message: 'User is not a member of the team',
             });
         }
+
+        // Include audit information //* Inclure les informations d'audit
+        team._auditUser = req.user._id; // Assuming req.user contains the authenticated user's info //* Supposons que req.user contienne les informations de l'utilisateur authentifié
 
         await team.save();
 

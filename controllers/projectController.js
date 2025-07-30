@@ -123,6 +123,10 @@ exports.createProject = async (req, res) => {
             teams,
             createBy,
         });
+
+        // Include audit information //* Inclure les informations d'audit
+        newProject._auditUser = req.user._id; 
+
         await newProject.save();
         res.status(201).json({ message: 'Project created', newProject });
     } catch (error) {
@@ -173,6 +177,9 @@ exports.updateProject = async (req, res) => {
             });
         }
 
+        // Include audit information //* Inclure les informations d'audit
+        project._auditUser = req.user._id;
+
         res.status(200).json({ message: 'Project updated', project });
     } catch (error) {
         console.error(error);
@@ -185,7 +192,12 @@ exports.deleteProject = async (req, res) => {
     const { projectId } = req.params;
 
     try {
-        const project = await Project.findByIdAndDelete(projectId);
+        const query = Project.findByIdAndDelete(projectId);
+
+        // Include audit information //* Inclure les informations d'audit
+        query._auditUser = req.user._id;
+        
+        const project = await query.exec();
 
         if (!project) {
             return res.status(404).json({ message: 'Project not found' });

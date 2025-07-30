@@ -43,6 +43,7 @@ exports.uploadAttachment = async (req, res) => {
         };
 
         task.attachments.push(attachment);
+
         await task.save();
 
         res.status(201).json({

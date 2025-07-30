@@ -12,6 +12,10 @@ exports.addComment = async (req, res) => {
         }
 
         task.comments.push({ content, createdBy: req.user._id });
+
+        // Include audit information //* Inclure les informations d'audit
+        task._auditUser = req.user._id;
+
         await task.save();
 
         res.status(201).json({
@@ -53,6 +57,10 @@ exports.updateComment = async (req, res) => {
         comment.content = content;
         comment.updatedAt = new Date();
         comment.updatedBy = req.user._id; // Assuming you want to track who updated the comment //* Mettre à jour qui a modifié le commentaire
+
+        // Include audit information //* Inclure les informations d'audit
+        task._auditUser = req.user._id;
+
         await task.save();
 
         res.status(200).json({
@@ -91,6 +99,10 @@ exports.deleteComment = async (req, res) => {
         }
 
         comment.remove();
+
+        // Include audit information //* Inclure les informations d'audit
+        task._auditUser = req.user._id;
+
         await task.save();
 
         res.status(200).json({

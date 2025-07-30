@@ -54,6 +54,10 @@ exports.createRole = async (req, res) => {
         }
 
         const newRole = new Role({ name, permissions });
+
+        // Include audit information //* Inclure les informations d'audit
+        newRole._auditUser = req.user._id;
+
         await newRole.save();
         res.status(201).json(newRole);
     } catch (error) {
@@ -91,6 +95,9 @@ exports.updateRole = async (req, res) => {
             role.permissions = permissions;
         }
 
+        // Include audit information //* Inclure les informations d'audit
+        role._auditUser = req.user._id;
+
         res.status(200).json({ message: 'Role updated', role });
     } catch (error) {
         console.error(error);
@@ -103,12 +110,19 @@ exports.deleteRole = async (req, res) => {
     const { roleId } = req.params;
 
     try {
-        const role = await Role.findByIdAndDelete(roleId);
+        const query = Role.findByIdAndDelete(roleId);
+        
+        // Include audit information //* Inclure les informations d'audit
+        query._auditUser = req.user._id;
+
+        const role = await query.exec();
+
         if (!role) {
             return res.status(404).json({ message: 'Role not found' });
         }
 
         const protectedRoles = ['admin', 'superadmin'];
+
         if (protectedRoles.includes(role.name.toLowerCase())) {
             return res.status(403).json({
                 message: `Role "${role.name}" cannot be deleted`,
